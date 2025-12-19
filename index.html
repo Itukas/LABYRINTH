@@ -469,6 +469,93 @@
         .inline-result .score { font-size: 4rem; font-weight: 900; color: var(--guess); line-height: 1; margin: 10px 0; font-family: var(--font-serif); }
         .inline-result .truth-box { text-align: left; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; margin: 20px 0; font-size: 0.95rem; color: #e2e8f0; line-height: 1.6; max-height: 300px; overflow-y: auto; font-family: var(--font-serif); }
 
+        /* 结算询问卡片样式 */
+        .settle-prompt {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 12px 0;
+            text-align: center;
+            animation: fadeInUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .settle-prompt h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-family: var(--font-serif);
+        }
+
+        .settle-prompt p {
+            margin: 0 0 16px 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .settle-prompt-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .settle-prompt .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .settle-prompt .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+        }
+
+        .settle-prompt .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .settle-prompt .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+        }
+
+        /* 结算按钮样式 */
+        .action-btn.settle-btn {
+            color: var(--primary);
+            display: none; /* 默认隐藏 */
+        }
+
+        .action-btn.settle-btn:hover {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        .action-btn.settle-btn.visible {
+            display: inline-flex;
+        }
+
         /* 输入区 */
         .input-wrapper {
             flex-shrink: 0; padding: 15px; border-radius: var(--radius-lg);
@@ -750,9 +837,14 @@
                         <button class="btn" onclick="Api.openPicker('story')" style="padding:0 10px;"><span class="iconify" data-icon="lucide:list"></span></button>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <button class="btn" onclick="Api.test('story')" style="font-size:0.75rem; padding:4px 8px;">
-                            <span class="iconify" data-icon="lucide:play"></span> 测试
-                        </button>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn" onclick="Api.test('story')" style="font-size:0.75rem; padding:4px 8px;">
+                                <span class="iconify" data-icon="lucide:play"></span> 测试
+                            </button>
+                            <button class="btn" onclick="Api.testThinking('story')" style="font-size:0.75rem; padding:4px 8px; color:var(--guess); border-color:rgba(245,158,11,0.3);">
+                                <span class="iconify" data-icon="lucide:brain"></span> 测试思考
+                            </button>
+                        </div>
                         <div id="testStory" style="font-size:0.75rem;"></div>
                     </div>
                 </div>
@@ -765,9 +857,14 @@
                         <button class="btn" onclick="Api.openPicker('fast')" style="padding:0 10px;"><span class="iconify" data-icon="lucide:list"></span></button>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <button class="btn" onclick="Api.test('fast')" style="font-size:0.75rem; padding:4px 8px;">
-                            <span class="iconify" data-icon="lucide:play"></span> 测试
-                        </button>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn" onclick="Api.test('fast')" style="font-size:0.75rem; padding:4px 8px;">
+                                <span class="iconify" data-icon="lucide:play"></span> 测试
+                            </button>
+                            <button class="btn" onclick="Api.testThinking('fast')" style="font-size:0.75rem; padding:4px 8px; color:var(--guess); border-color:rgba(245,158,11,0.3);">
+                                <span class="iconify" data-icon="lucide:brain"></span> 测试思考
+                            </button>
+                        </div>
                         <div id="testFast" style="font-size:0.75rem;"></div>
                     </div>
                 </div>
@@ -896,11 +993,14 @@
                     </div>
 
                     <div class="action-btn-row">
+                        <button class="action-btn settle-btn" id="settleBtn" onclick="Game.settle()">
+                            <span class="iconify" data-icon="lucide:check-circle"></span> 结束并结算
+                        </button>
                         <button class="action-btn quit-btn" onclick="Game.quit()">
                             <span class="iconify" data-icon="lucide:flag"></span> 放弃
                         </button>
                         <button class="action-btn exit-btn" onclick="Game.backToHome()">
-                            <span class="iconify" data-icon="lucide:log-out"></span> 退出
+                            <span class="iconify" data-icon="lucide:log-out"></span> 退出 (保存)
                         </button>
                     </div>
                 </div>
@@ -1260,7 +1360,7 @@ const Api = {
     async test(type) {
         const el = document.getElementById(type==='story'?'testStory':'testFast');
         const model = document.getElementById(type==='story'?'modelStory':'modelFast').value;
-        el.innerText = "Connecting...";
+        el.innerText = "连接中...";
         el.style.color = "var(--text-muted)";
         
         const payload = { model: model, messages: [{role:"user", content:"hi"}], max_tokens:1 };
@@ -1277,11 +1377,101 @@ const Api = {
                 body: JSON.stringify(payload)
             });
             if(res.ok) {
-                el.innerHTML = `<span style="color:var(--c-yes)">✅ 成功</span>`;
+                el.innerHTML = `<span style="color:var(--c-yes)">✅ 连接成功</span>`;
             } else {
                 el.innerHTML = `<span style="color:var(--c-no)">❌ 失败 ${res.status}</span>`;
             }
         } catch(e) { el.innerHTML = `<span style="color:var(--c-no)">❌ 网络错误</span>`; }
+    },
+
+    // 新增：测试思考模式
+    async testThinking(type) {
+        const el = document.getElementById(type==='story'?'testStory':'testFast');
+        const model = document.getElementById(type==='story'?'modelStory':'modelFast').value;
+        const base = document.getElementById('apiBase').value;
+        const key = document.getElementById('apiKey').value;
+        
+        if (!model) {
+            el.innerHTML = `<span style="color:var(--c-no)">❌ 请先填写模型</span>`;
+            return;
+        }
+        
+        el.innerHTML = `<span style="color:var(--guess)">🧠 测试思考中...</span>`;
+        
+        const payload = { 
+            model: model, 
+            messages: [{role:"user", content:"1+1=?"}], 
+            max_tokens: 100,
+            stream: true,
+            enable_thinking: true
+        };
+        
+        console.group(`🧠 [THINKING TEST] ${model}`);
+        console.log("URL:", `${base}/chat/completions`);
+        console.log("Body:", JSON.stringify(payload, null, 2));
+        console.groupEnd();
+
+        try {
+            const res = await fetch(`${base}/chat/completions`, {
+                method:'POST',
+                headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${key}` },
+                body: JSON.stringify(payload)
+            });
+            
+            if (!res.ok) {
+                el.innerHTML = `<span style="color:var(--c-no)">❌ 请求失败 ${res.status}</span>`;
+                return;
+            }
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let hasThinking = false;
+            let thinkingContent = "";
+            let normalContent = "";
+
+            while(true) {
+                const {done, value} = await reader.read();
+                if(done) break;
+                const lines = decoder.decode(value, {stream:true}).split('\n');
+                for(const line of lines) {
+                    if(line.startsWith('data: ') && !line.includes('[DONE]')) {
+                        try {
+                            const json = JSON.parse(line.substring(6));
+                            const delta = json.choices?.[0]?.delta;
+                            
+                            // 检测 reasoning_content (思考内容)
+                            if(delta?.reasoning_content) {
+                                hasThinking = true;
+                                thinkingContent += delta.reasoning_content;
+                            }
+                            // 检测普通 content
+                            if(delta?.content) {
+                                normalContent += delta.content;
+                            }
+                        } catch(e){}
+                    }
+                }
+            }
+            
+            console.log('%c[THINKING TEST RESULT]', 'color: #f59e0b; font-weight: bold;');
+            console.log('Has Thinking:', hasThinking);
+            console.log('Thinking Content:', thinkingContent);
+            console.log('Normal Content:', normalContent);
+
+            if(hasThinking) {
+                el.innerHTML = `<span style="color:var(--c-yes)">✅ 支持思考模式</span>`;
+                console.log('%c✅ 模型支持 enable_thinking', 'color: #4ade80; font-size: 12px;');
+            } else if(normalContent) {
+                el.innerHTML = `<span style="color:var(--guess)">⚠️ 无思考输出</span>`;
+                console.log('%c⚠️ 模型响应正常但无 reasoning_content，可能不支持思考模式', 'color: #f59e0b; font-size: 12px;');
+            } else {
+                el.innerHTML = `<span style="color:var(--c-no)">❌ 无有效响应</span>`;
+            }
+
+        } catch(e) { 
+            console.error(e);
+            el.innerHTML = `<span style="color:var(--c-no)">❌ ${e.message}</span>`; 
+        }
     },
     
     async stream(model, messages, callbacks, options={}) {
@@ -1307,6 +1497,7 @@ const Api = {
             const reader = res.body.getReader();
             const decoder = new TextDecoder();
             let fullText = "";
+            let thinkingText = "";  // 新增：单独记录思考内容
             let started = false;
 
             while(true) {
@@ -1319,14 +1510,19 @@ const Api = {
                             const json = JSON.parse(line.substring(6));
                             const delta = json.choices[0].delta;
                             
-                            // 统一合并 think 和 content
+                            // 统一合并 think 和 content 用于回调
                             let chunk = "";
-                            if(delta.reasoning_content) chunk += delta.reasoning_content;
-                            if(delta.content) chunk += delta.content;
+                            if(delta.reasoning_content) {
+                                chunk += delta.reasoning_content;
+                                thinkingText += delta.reasoning_content;  // 累加思考内容
+                            }
+                            if(delta.content) {
+                                chunk += delta.content;
+                                fullText += delta.content;  // 只累加正式内容
+                            }
 
                             if(chunk) {
                                 if(!started && callbacks.onStart) { callbacks.onStart(); started = true; }
-                                fullText += (delta.content || "");
                                 if(callbacks.onContent) callbacks.onContent(chunk, fullText);
                             }
                         } catch(e){}
@@ -1334,7 +1530,15 @@ const Api = {
                 }
             }
             
-            console.log("%c[API RES] Complete Content:", "color:green; font-weight:bold", fullText);
+            // 打印完整响应，包含思考内容
+            console.group("%c[API RES] Complete", "color:green; font-weight:bold");
+            if(thinkingText) {
+                console.log("%c🧠 Thinking:", "color:#f59e0b; font-weight:bold");
+                console.log(thinkingText);
+            }
+            console.log("%c📝 Content:", "color:#4ade80; font-weight:bold");
+            console.log(fullText);
+            console.groupEnd();
 
             if(callbacks.onFinish) callbacks.onFinish(fullText);
         } catch(e) {
@@ -1551,10 +1755,24 @@ const UI = {
 
 const Game = {
     state: {
-        status: 'idle', diff: 'easy', tags: [], puzzle: null,
-        history: [], foundPoints: [],
-        turnsMax: 0, turnsUsed: 0, hintsMax: 0, hintsUsed: 0,
-        startTime: 0, draftAsk: "", draftGuess: "", titleFound: false
+        tags: [],
+        diff: 'normal',
+        puzzle: null,
+        history: [],
+        foundPoints: [],      // 累计已猜中的要点
+        turnsMax: 40,
+        turnsUsed: 0,
+        hintsMax: 5,
+        hintsUsed: 0,
+        startTime: null,
+        mode: 'ask',
+        draftAsk: "",
+        draftGuess: "",
+        status: 'idle',
+        titleFound: false,
+        settlePromptShown: false,  // 是否已显示过结算提示
+        canSettle: false,          // 是否可以结算
+        highestScore: 0            // 新增：历史最高单次得分
     },
 
     setDiff(d, el) {
@@ -1677,6 +1895,7 @@ const Game = {
         }
     },
 
+    // 修改：initNew 方法，重置新状态
     initNew() {
         if(Bubble.selected.size === 0) return alert("请至少选择 1 个关键词");
         this.state.tags = Array.from(Bubble.selected);
@@ -1685,9 +1904,13 @@ const Game = {
         this.state.turnsUsed = 0;
         this.state.hintsUsed = 0;
         this.state.startTime = Date.now();
-        this.state.draftAsk = ""; this.state.draftGuess = "";
+        this.state.draftAsk = ""; 
+        this.state.draftGuess = "";
         this.state.status = 'generating';
         this.state.titleFound = false;
+        this.state.settlePromptShown = false;  // 重置结算提示状态
+        this.state.canSettle = false;          // 重置结算按钮状态
+        this.state.highestScore = 0;           // 重置最高分
 
         this.setDiff(this.state.diff, document.querySelector('.diff-btn.active'));
 
@@ -1709,6 +1932,9 @@ const Game = {
         titleRow.classList.remove('has-emoji');
         const existingEmoji = document.getElementById('puzzleEmoji');
         if (existingEmoji) existingEmoji.remove();
+        
+        // 隐藏结算按钮
+        this.updateSettleButton();
         
         this.updateStats();
         this.setMode('ask');
@@ -1744,6 +1970,95 @@ const Game = {
         titleRow.classList.add('has-emoji');
     },
 
+        // 新增：调试打印方法
+    debugPrint() {
+        if (!this.state.puzzle) {
+            console.log('%c[DEBUG] 谜题尚未生成', 'color: orange');
+            return;
+        }
+        
+        console.group('%c🎭 谜题调试信息', 'color: #38bdf8; font-size: 14px; font-weight: bold;');
+        console.log('%c标题:', 'color: #fbbf24; font-weight: bold;', this.state.puzzle.title);
+        console.log('%cEmoji:', 'color: #fbbf24; font-weight: bold;', this.state.puzzle.emoji || '🎭');
+        console.log('%c谜面:', 'color: #4ade80; font-weight: bold;', this.state.puzzle.puzzle);
+        console.log('%c真相:', 'color: #f87171; font-weight: bold;', this.state.puzzle.answer);
+        console.log('%c要点列表:', 'color: #a78bfa; font-weight: bold;');
+        this.state.puzzle.key_points.forEach((kp, i) => {
+            const found = this.state.foundPoints.includes(kp);
+            console.log(`  ${found ? '✅' : '⬜'} ${i + 1}. ${kp}`);
+        });
+        console.log('%c游戏状态:', 'color: #94a3b8; font-weight: bold;', {
+            难度: this.state.diff,
+            已用轮次: this.state.turnsUsed,
+            剩余轮次: this.state.turnsMax === 0 ? '∞' : this.state.turnsMax - this.state.turnsUsed,
+            已用提示: this.state.hintsUsed,
+            剩余提示: this.state.hintsMax > 100 ? '∞' : this.state.hintsMax - this.state.hintsUsed,
+            已猜中要点: `${this.state.foundPoints.length}/${this.state.puzzle.key_points.length}`,
+            最高得分: this.state.highestScore,
+            可结算: this.state.canSettle
+        });
+        console.groupEnd();
+        
+        // 作弊提示
+        console.log('%c💡 作弊指令:', 'color: #facc15; font-weight: bold;');
+        console.log('  Game.cheat.autoWin()     - 直接通关');
+        console.log('  Game.cheat.addTurns(n)   - 增加 n 轮次');
+        console.log('  Game.cheat.addHints(n)   - 增加 n 次提示');
+    },
+
+        // 新增：作弊工具集
+    cheat: {
+        showAnswer() {
+            if (!Game.state.puzzle) return console.log('谜题未生成');
+            console.log('%c📜 完整真相:', 'color: #f87171; font-size: 14px; font-weight: bold;');
+            console.log(Game.state.puzzle.answer);
+            // 同时复制到剪贴板
+            navigator.clipboard?.writeText(Game.state.puzzle.answer);
+            console.log('(已复制到剪贴板)');
+        },
+        
+        showHints() {
+            if (!Game.state.puzzle) return console.log('谜题未生成');
+            console.log('%c🎯 所有要点:', 'color: #a78bfa; font-size: 14px; font-weight: bold;');
+            Game.state.puzzle.key_points.forEach((kp, i) => {
+                const found = Game.state.foundPoints.includes(kp);
+                console.log(`${found ? '✅' : '❌'} ${i + 1}. ${kp}`);
+            });
+        },
+        
+        autoWin() {
+            if (!Game.state.puzzle) return console.log('谜题未生成');
+            // 标记所有要点为已找到
+            Game.state.foundPoints = [...Game.state.puzzle.key_points];
+            Game.state.highestScore = 100;
+            Game.state.canSettle = true;
+            console.log('%c🏆 作弊通关中...', 'color: #4ade80; font-size: 14px;');
+            Game.finish(true);
+        },
+        
+        addTurns(n = 10) {
+            if (Game.state.turnsMax === 0) return console.log('当前为无限轮次模式');
+            Game.state.turnsMax += n;
+            Game.updateStats();
+            console.log(`%c⏱️ 已增加 ${n} 轮次，当前剩余: ${Game.state.turnsMax - Game.state.turnsUsed}`, 'color: #38bdf8;');
+        },
+        
+        addHints(n = 5) {
+            if (Game.state.hintsMax > 100) return console.log('当前为无限提示模式');
+            Game.state.hintsMax += n;
+            Game.updateStats();
+            console.log(`%c💡 已增加 ${n} 次提示，当前剩余: ${Game.state.hintsMax - Game.state.hintsUsed}`, 'color: #facc15;');
+        },
+        
+        unlockSettle() {
+            Game.state.canSettle = true;
+            Game.state.highestScore = Math.max(Game.state.highestScore, 80);
+            Game.updateSettleButton();
+            console.log('%c🔓 已解锁提前结算', 'color: #a78bfa;');
+        }
+    },
+
+    // 修改 loadFromHistory 方法，在恢复后打印调试信息
     loadFromHistory(item) {
         const emoji = item.puzzle?.emoji || item.state?.puzzle?.emoji || '🎭';
         
@@ -1756,7 +2071,6 @@ const Game = {
             const titleRow = titleEl.closest('.puzzle-title-row');
             const tagsEl = document.getElementById('gameTags');
             
-            // 禁用过渡效果
             titleRow.style.transition = 'none';
             titleEl.style.transition = 'none';
             tagsEl.style.transition = 'none';
@@ -1764,11 +2078,9 @@ const Game = {
             titleEl.innerText = item.title;
             tagsEl.innerHTML = item.tags.join(' / ') + ' [已归档]';
             
-            // 创建 Emoji
             this.createEmojiContainer(emoji);
             
-            // 强制重绘后恢复过渡效果
-            titleRow.offsetHeight; // 触发 reflow
+            titleRow.offsetHeight;
             titleRow.style.transition = '';
             titleEl.style.transition = '';
             tagsEl.style.transition = '';
@@ -1806,10 +2118,30 @@ const Game = {
             `;
             document.getElementById('chatList').appendChild(card);
             document.getElementById('inputWrapper').style.display = 'none';
+            
+            // ✨ 新增：打印已完成游戏的调试信息
+            console.group('%c📚 历史记录 (已完成)', 'color: #94a3b8; font-size: 14px;');
+            console.log('标题:', item.title);
+            console.log('评级:', item.rank);
+            console.log('真相:', item.puzzle?.answer || item.answer);
+            console.groupEnd();
+            
             return;
         }
         
         this.state = JSON.parse(JSON.stringify(item.state));
+        
+        // 恢复结算相关状态
+        if (this.state.settlePromptShown === undefined) {
+            this.state.settlePromptShown = false;
+        }
+        if (this.state.canSettle === undefined) {
+            this.state.canSettle = false;
+        }
+        if (this.state.highestScore === undefined) {
+            this.state.highestScore = 0;
+        }
+        
         UI.switchPage('page-game');
         
         const container = document.getElementById('gameContainer');
@@ -1823,7 +2155,6 @@ const Game = {
         const titleRow = titleEl.closest('.puzzle-title-row');
         const tagsEl = document.getElementById('gameTags');
         
-        // 禁用过渡效果
         titleRow.style.transition = 'none';
         titleEl.style.transition = 'none';
         tagsEl.style.transition = 'none';
@@ -1831,11 +2162,9 @@ const Game = {
         titleEl.innerText = this.state.puzzle.title;
         tagsEl.innerHTML = this.state.tags.join(' / ') + ` <span class="diff-badge">${this.state.diff}</span>`;
         
-        // 创建 Emoji
         this.createEmojiContainer(emoji);
         
-        // 强制重绘后恢复过渡效果
-        titleRow.offsetHeight; // 触发 reflow
+        titleRow.offsetHeight;
         titleRow.style.transition = '';
         titleEl.style.transition = '';
         tagsEl.style.transition = '';
@@ -1856,11 +2185,19 @@ const Game = {
             }
         });
         
+        // 恢复结算按钮状态
+        this.updateSettleButton();
+        
         UI.addMsg('sys', '存档已恢复，可继续提问。');
         this.updateStats();
         this.setMode('ask');
+        
+        // ✨ 新增：打印调试信息
+        console.log('%c📂 从历史记录恢复', 'color: #38bdf8; font-size: 14px;');
+        this.debugPrint();
     },
 
+    // 修改 generate 方法，在生成完成后打印调试信息
     generate() {
         let diffPrompt = "";
         let kpCount = "";
@@ -1899,7 +2236,10 @@ const Game = {
                 if(fullText.includes('"title":')) UI.PhaseMgr.request(1); 
                 if(fullText.includes('"puzzle":')) UI.PhaseMgr.request(2); 
                 if(fullText.includes('"answer":')) UI.PhaseMgr.request(3); 
-                if(fullText.includes('"key_points":')) UI.PhaseMgr.request(4);
+                if(fullText.includes('"key_points":')) {
+                    UI.PhaseMgr.request(4);
+                    this.TipsCarousel.freeze();
+                }
 
                 // 实时提取 Emoji 和标题
                 if (!this.state.titleFound) {
@@ -1942,6 +2282,9 @@ const Game = {
                         this.saveHistory('active');
                         this.updateStats();
                         UI.addMsg('sys', '谜题已呈现。请提问/猜谜');
+
+                        // ✨ 新增：打印调试信息
+                        this.debugPrint();
 
                     } catch(e) {
                         console.error(e);
@@ -2063,6 +2406,7 @@ const Game = {
         }, { thinking: true }); 
     },
 
+    // 修改：handleGuess 方法
     handleGuess(g) {
         const kps = JSON.stringify(this.state.puzzle.key_points);
         const sys = `你是一个海龟汤裁判。
@@ -2089,10 +2433,9 @@ const Game = {
                     const clean = txt.replace(/```json/g,'').replace(/```/g,'').replace(/<think>[\s\S]*?<\/think>/g,'');
                     const res = JSON.parse(clean);
                     
-                    // 修改：仅统计本次猜中的要点数量，不累加
                     const thisRoundMatched = (res.achieved_points || []).length;
                     
-                    // 累加到总进度（用于通关判定）
+                    // 累加到总进度
                     if(res.achieved_points) {
                         res.achieved_points.forEach(p => { 
                             if(!this.state.foundPoints.includes(p)) 
@@ -2101,25 +2444,35 @@ const Game = {
                     }
 
                     const total = this.state.puzzle.key_points.length;
-                    const cumulativeFound = this.state.foundPoints.length; // 累计进度
+                    const cumulativeFound = this.state.foundPoints.length;
                     const wrong = (res.wrong_segments||[]).length;
                     
-                    // 基础分 = 本次匹配要点数 / 总要点数 * 100
                     let score = Math.round((thisRoundMatched / total) * 100) - (wrong * 10);
                     score = Math.max(0, Math.min(100, score));
+
+                    // 更新历史最高分
+                    if (score > this.state.highestScore) {
+                        this.state.highestScore = score;
+                    }
 
                     let htmlText = g.replace(/&/g, "&amp;").replace(/</g, "&lt;");
                     (res.matched_segments||[]).forEach(s => htmlText = htmlText.split(s).join(`<span class="hl-ok">${s}</span>`));
                     (res.wrong_segments||[]).forEach(s => htmlText = htmlText.split(s).join(`<span class="hl-no">${s}</span>`));
                     
-                    // 构建卡片内容
+                    // 分数颜色
+                    let scoreColor = 'var(--c-no)';
+                    if (score >= 90) scoreColor = '#fbbf24';
+                    else if (score >= 80) scoreColor = '#a78bfa';
+                    else if (score >= 60) scoreColor = 'var(--primary)';
+                    else if (score >= 40) scoreColor = 'var(--c-yes)';
+                    
                     const deduction = wrong > 0 ? ` <span style="font-size:0.7rem; color:var(--c-no)">(-${wrong * 10})</span>` : '';
                     const errorInfo = wrong > 0 ? `<span style="font-size:0.8rem;color:var(--c-no);margin-left:10px;">错误 ${wrong}</span>` : '';
                     
                     const html = `
                     <div class="report">
                         <div class="report-head">
-                            <span class="report-score">${score}分${deduction}</span>
+                            <span class="report-score" style="color:${scoreColor}">${score}分${deduction}</span>
                             <div style="display:flex; gap:8px; align-items:center;">
                                 <span style="font-size:0.8rem;color:#94a3b8">已匹配 ${cumulativeFound}/${total}</span>
                                 ${errorInfo}
@@ -2133,7 +2486,20 @@ const Game = {
                     this.state.history.push({role:"assistant", content:html});
                     this.saveHistory('active');
 
-                    // 通关条件：累计进度达到 100% 且本次无错误
+                    // 检查是否可以结算（得分 >= 80）
+                    if (score >= 80 && !this.state.canSettle) {
+                        this.state.canSettle = true;
+                        
+                        // 首次达到80分，1秒后显示结算提示
+                        if (!this.state.settlePromptShown) {
+                            setTimeout(() => this.showSettlePrompt(), 1000);
+                        } else {
+                            // 之后只更新按钮状态
+                            this.updateSettleButton();
+                        }
+                    }
+
+                    // 通关条件：累计进度达到 100% 且本次满分
                     if(cumulativeFound >= total && score >= 100) {
                         setTimeout(()=>this.finish(true), 1500);
                     }
@@ -2146,64 +2512,109 @@ const Game = {
         }, { thinking: true });
     },
 
+    // 新增：结算方法
+    settle() {
+        if (!this.state.canSettle) return;
+        // 提前结算时，评级分数 *= 最高得分/100
+        this.finish(true, false, true);
+    },
+
+    // 新增：显示结算提示卡片
+    showSettlePrompt() {
+        if (this.state.settlePromptShown) return;
+        this.state.settlePromptShown = true;
+        
+        // 显示结算按钮
+        this.updateSettleButton();
+        
+        const card = document.createElement('div');
+        card.className = 'settle-prompt';
+        card.id = 'settlePromptCard';
+        card.innerHTML = `
+            <h3>🎊 表现出色！</h3>
+            <p>你已经揭开了大部分真相，是否现在结束游戏进行结算？<br>
+            <span style="font-size:0.8rem; color:var(--text-muted)">提前结算将根据当前最高得分 (${this.state.highestScore}%) 折算最终评级</span></p>
+            <div class="settle-prompt-btns">
+                <button class="btn-primary" onclick="Game.settle(); document.getElementById('settlePromptCard')?.remove();">
+                    <span class="iconify" data-icon="lucide:check-circle"></span> 结束并结算
+                </button>
+                <button class="btn-secondary" onclick="document.getElementById('settlePromptCard')?.remove();">
+                    继续挑战
+                </button>
+            </div>
+        `;
+        document.getElementById('chatList').appendChild(card);
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    },
+
+    // 新增：显示/隐藏结算按钮
+    updateSettleButton() {
+        const btn = document.getElementById('settleBtn');
+        if (btn) {
+            if (this.state.canSettle) {
+                btn.classList.add('visible');
+            } else {
+                btn.classList.remove('visible');
+            }
+        }
+    },
+
     getHint() {
         if(this.state.hintsMax > 0 && this.state.hintsUsed >= this.state.hintsMax) return;
         this.state.hintsUsed++;
         this.updateStats();
 
+        // 获取已猜中和未猜中的要点列表
+        const allPoints = this.state.puzzle.key_points || [];
+        const foundPoints = this.state.foundPoints || [];
+        const unfoundPoints = allPoints.filter(p => !foundPoints.includes(p));
+
+        // 提取用户的提问记录（不包含猜谜评价）
+        const askHistory = this.state.history
+            .filter(m => m.role === 'user' && m.content.includes('[提问]'))
+            .map(m => m.content.replace('[提问] ', ''));
+
+        // 提取之前的提示
         const pastHints = this.state.history
             .filter(m => m.role === 'assistant' && (m.content.includes('💡') || m.content.includes('提示')))
             .map(m => m.content);
 
-        // 提取猜谜尝试和评分
-        const guessAttempts = this.state.history
-            .filter(m => m.content.includes('[猜谜]'))
-            .map((m, idx) => {
-                const userGuess = m.content.replace('[猜谜] ', '');
-                const aiResponse = this.state.history[this.state.history.indexOf(m) + 1];
-                return `尝试${idx+1}: ${userGuess}\n评分: ${aiResponse?.content || '无'}`;
-            })
-            .join('\n\n');
-
-        // 构建更完整的上下文（限制在合理长度内）
-        const recentHistory = this.state.history.slice(-30); // 最近 30 条
-        const foundPointsInfo = `已猜中要点: ${this.state.foundPoints.join(', ') || '无'}`;
-
         const sys = `谜面：${this.state.puzzle.puzzle}
 真相：${this.state.puzzle.answer}
-全部真相要点：${JSON.stringify(this.state.puzzle.key_points)}
 
-${foundPointsInfo}
+用户已猜中的要点：
+${foundPoints.length > 0 ? foundPoints.map((p, i) => `${i + 1}. ${p}`).join('\n') : '（暂无）'}
 
-最近对话历史（最后30条）：
-${JSON.stringify(recentHistory, null, 2)}
+用户尚未猜中的要点：
+${unfoundPoints.length > 0 ? unfoundPoints.map((p, i) => `${i + 1}. ${p}`).join('\n') : '（已全部猜中）'}
 
-用户猜谜尝试记录：
-${guessAttempts || '尚未猜谜'}
+用户的提问记录：
+${askHistory.length > 0 ? askHistory.slice(-10).map((q, i) => `${i + 1}. ${q}`).join('\n') : '（暂无提问）'}
 
 已提供的提示：
-${JSON.stringify(pastHints)}
+${pastHints.length > 0 ? pastHints.join('\n') : '（暂无）'}
 
-任务：基于用户的**整体进度**和**已猜中的要点**，给出一句反问式提示，引导用户向**未解开的关键要点**靠近。
+任务：根据用户的提问记录和尚未猜中的要点，给出一句反问式提示，引导用户向未猜中的要点思考。
 要求：
 1. 不要重复之前的提示
-2. 不要提示用户已经知道或猜中的内容
-3. 优先引导用户关注被忽略的关键要点
-4. 不要直接透露谜底
-5. 只输出提示正文，不要其他内容`;
-    
-    const id = UI.addPlaceholder("正在生成提示...");
+2. 不要提示用户已经猜中的内容
+3. 优先引导用户关注尚未猜中的关键要点
+4. 根据用户的提问方向，巧妙地引导思考
+5. 不要直接透露谜底
+6. 只输出提示正文，不要其他内容`;
+        
+        const hintId = UI.addPlaceholder("正在生成提示...");
 
-    Api.stream(Api.cfg.fastModel, [{role:"system", content:sys}], {
-        onThink: () => {},
-        onFinish: (txt) => {
-            const clean = txt.replace(/<think>[\s\S]*?<\/think>/g,'').trim();
-            const hintMsg = `💡 提示：${clean}`;
-            UI.replacePlaceholder(id, hintMsg, 'ai');
-            this.state.history.push({role:"assistant", content:hintMsg});
-            this.saveHistory('active');
-        }
-    }, { thinking: true });
+        Api.stream(Api.cfg.fastModel, [{role:"system", content:sys}], {
+            onThink: () => {},
+            onFinish: (txt) => {
+                const clean = txt.replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+                const hintMsg = `💡 提示：${clean}`;
+                UI.replacePlaceholder(hintId, hintMsg, 'ai');
+                this.state.history.push({role:"assistant", content:hintMsg});
+                this.saveHistory('active');
+            }
+        }, { thinking: true });
     },
 
     updateStats() {
@@ -2235,7 +2646,8 @@ ${JSON.stringify(pastHints)}
         }
     },
 
-    finish(success, isReplay=false) {
+    // 修改：finish 方法，支持提前结算的分数折算
+    finish(success, isReplay=false, earlySettle=false) {
         if(success && !isReplay) Confetti.start();
         
         const wrap = document.getElementById('inputWrapper');
@@ -2243,25 +2655,44 @@ ${JSON.stringify(pastHints)}
         setTimeout(() => wrap.style.display = 'none', 300);
         document.getElementById('gameContainer').classList.add('state-over');
 
+        // 移除可能存在的结算提示卡片
+        document.getElementById('settlePromptCard')?.remove();
+
         let rank = 'F';
-        let rankColor = 'var(--c-no)'; // 默认失败红色
+        let rankColor = 'var(--c-no)';
+        let finalScore = 0;
         
         if(success) {
             const base = 100;
             const ded = this.state.turnsUsed * 2;
-            const s = Math.max(0, base - ded);
-            if(s>=90) { rank='S'; rankColor='#fbbf24'; } // 金色
-            else if(s>=80) { rank='A'; rankColor='#a78bfa'; } // 紫色
-            else if(s>=60) { rank='B'; rankColor='var(--primary)'; } // 蓝色
-            else { rank='C'; rankColor='var(--c-yes)'; } // 绿色
+            let s = Math.max(0, base - ded);
+            
+            // 提前结算时，分数按最高得分比例折算
+            if (earlySettle && this.state.highestScore < 100) {
+                s = Math.round(s * (this.state.highestScore / 100));
+            }
+            
+            finalScore = s;
+            
+            if(s >= 90) { rank = 'S'; rankColor = '#fbbf24'; }
+            else if(s >= 80) { rank = 'A'; rankColor = '#a78bfa'; }
+            else if(s >= 60) { rank = 'B'; rankColor = 'var(--primary)'; }
+            else { rank = 'C'; rankColor = 'var(--c-yes)'; }
         }
 
         if(!isReplay || !document.querySelector('.inline-result')) {
             const card = document.createElement('div');
             card.className = 'inline-result';
+            
+            // 显示提前结算信息
+            const earlyInfo = earlySettle && this.state.highestScore < 100 
+                ? `<div style="font-size:0.8rem; color:var(--text-muted); margin-top:5px;">提前结算 (最高得分 ${this.state.highestScore}%)</div>` 
+                : '';
+            
             card.innerHTML = `
-                <h2>${success?"🎉 任务完成":"💀 任务失败"}</h2>
+                <h2>${success ? "🎉 任务完成" : "💀 任务失败"}</h2>
                 <div class="score" style="color:${rankColor}">${rank}</div>
+                ${earlyInfo}
                 <div style="font-size:0.9rem; color:#94a3b8">轮次: ${this.state.turnsUsed} | 提示: ${this.state.hintsUsed}</div>
                 <div class="truth-box"><strong>真相：</strong><br>${this.state.puzzle.answer}</div>
                 <button class="btn" onclick="Game.backToHome()"><span class="iconify" data-icon="lucide:home"></span> 返回主页</button>
