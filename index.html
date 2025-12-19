@@ -511,6 +511,73 @@
 
         #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
 
+        /* 游戏规则提示轮播 */
+        .game-tips-container {
+            margin-top: 20px;
+            text-align: center;
+            height: 60px;
+            overflow: hidden;
+            position: relative;
+            opacity: 0;
+            /* 添加高度和 margin 的过渡动画 */
+            transition: opacity 0.5s, height 0.5s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .game-tips-container.active {
+            opacity: 1;
+        }
+
+        .tip-item {
+            position: absolute;
+            width: 100%;
+            top: 20px;
+            left: 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+                        transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 0 20px;
+            /* 修改：使用 flex 布局，图标在左侧 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .tip-item.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tip-item.exit {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        .tip-icon {
+            /* 修改：移除 inline-flex 和 margin-bottom */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.15);
+            flex-shrink: 0;
+        }
+
+        .tip-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-family: var(--font-ui);
+            text-align: left;
+        }
+
+        .tip-text strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
         @keyframes pulse { 0% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0.5; transform: scale(1); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -1399,6 +1466,111 @@ const Game = {
         else desc.innerHTML = "逻辑极度隐晦，包含复杂诡计或心理盲区。<br>仅25轮提问，无提示机会。";
     },
 
+    TipsCarousel: {
+        tips: [
+            { icon: 'lucide:message-circle-question', text: '使用 <strong>提问模式</strong> 探索线索,裁判会回答"是/否/无关/是也不是"' },
+            { icon: 'lucide:search-check', text: '在 <strong>猜谜模式</strong> 输入完整推理，系统会评分并高亮正确/错误片段' },
+            { icon: 'lucide:lightbulb', text: '遇到困难？点击 <strong>获取提示</strong> 按钮，AI 会引导你关注被忽略的要点' },
+            { icon: 'lucide:target', text: '猜谜得分 = <strong>(本轮匹配要点数 / 总要点数) × 100 - 错误数 × 10</strong>' },
+            { icon: 'lucide:trophy', text: '评级规则：<strong>S ≥ 90分</strong>，<strong>A ≥ 80分</strong>，<strong>B ≥ 60分</strong>，<strong>C < 60分</strong>' },
+            { icon: 'lucide:clock', text: '简单模式无限轮次，常规模式 <strong>40 轮</strong>，困难模式仅 <strong>25 轮</strong>' },
+            { icon: 'lucide:zap', text: '提示机会：简单模式 <strong>∞</strong>，常规模式 <strong>5 次</strong>，困难模式 <strong>0 次</strong>' },
+            { icon: 'lucide:brain', text: '侧向思维是关键：不要被表面现象迷惑，从 <strong>不寻常的细节</strong> 入手' },
+            { icon: 'lucide:shield-check', text: '所有进度 <strong>自动保存</strong>，随时可退出并从历史记录继续挑战' },
+            { icon: 'lucide:cpu', text: '提示总是出错？尝试更换 <strong>带有思考模式的 LLM</strong>（如 DeepSeek-R1）' },
+            { icon: 'lucide:layers', text: '不同难度下谜题的 <strong>复杂度和诡计深度</strong> 也会有显著区别' },
+            { icon: 'lucide:refresh-cw', text: '觉得标签太单调？在主页可点击 <strong>"换一批"</strong> 来刷新标签' }
+        ],
+        container: null,
+        currentIndex: 0,
+        interval: null,
+        stopped: false,
+        
+        init() {
+            const container = document.createElement('div');
+            container.className = 'game-tips-container';
+            container.id = 'gameTips';
+            
+            this.tips.forEach((tip, index) => {
+                const item = document.createElement('div');
+                item.className = 'tip-item';
+                item.innerHTML = `
+                    <div class="tip-icon">
+                        <span class="iconify" data-icon="${tip.icon}" style="color:var(--primary); font-size:1.1rem;"></span>
+                    </div>
+                    <div class="tip-text">${tip.text}</div>
+                `;
+                container.appendChild(item);
+            });
+            
+            const header = document.querySelector('.game-header');
+            header.parentNode.insertBefore(container, header.nextSibling);
+            
+            this.container = container;
+        },
+        
+        start() {
+            if (!this.container) this.init();
+            
+            this.stopped = false;
+            this.currentIndex = 0;
+            
+            // 显示容器并重置高度
+            this.container.style.height = '60px';
+            this.container.style.marginTop = '20px';
+            this.container.classList.add('active');
+            
+            this.container.children[0].classList.add('active');
+            
+            this.interval = setInterval(() => this.next(), 4000);
+        },
+        
+        next() {
+            if (this.stopped) return;
+            
+            const items = this.container.children;
+            const current = items[this.currentIndex];
+            
+            current.classList.remove('active');
+            current.classList.add('exit');
+            
+            this.currentIndex = (this.currentIndex + 1) % this.tips.length;
+            const next = items[this.currentIndex];
+            
+            setTimeout(() => {
+                current.classList.remove('exit');
+                next.classList.add('active');
+            }, 300);
+        },
+        
+        freeze() {
+            // 修改：freeze 时彻底隐藏，而不是停留在当前
+            this.stop();
+        },
+        
+        stop() {
+            this.stopped = true;
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = null;
+            }
+            
+            if (this.container) {
+                // 移除激活状态
+                this.container.classList.remove('active');
+                
+                // 平滑收缩到 0 高度并移除 margin
+                this.container.style.height = '0';
+                this.container.style.marginTop = '0';
+                
+                // 重置所有项
+                Array.from(this.container.children).forEach(item => {
+                    item.classList.remove('active', 'exit');
+                });
+            }
+        }
+    },
+
     initNew() {
         if(Bubble.selected.size === 0) return alert("请至少选择 1 个关键词");
         this.state.tags = Array.from(Bubble.selected);
@@ -1436,6 +1608,9 @@ const Game = {
         
         // 5. 初始化平滑滚动文本组件
         UI.SmoothText.init();
+        
+        // ✨ 新增：启动提示轮播
+        this.TipsCarousel.start();
         
         this.generate();
     },
@@ -1573,6 +1748,8 @@ const Game = {
                 // 然后再执行最终的 UI 切换
                 UI.PhaseMgr.waitAndFinish(() => {
                     UI.setThinkingState(null);
+                    // ✨ 停止提示轮播
+                    this.TipsCarousel.stop();
                     try {
                         const clean = txt.replace(/```json/g,'').replace(/```/g,'').replace(/<think>[\s\S]*?<\/think>/g,'');
                         const data = JSON.parse(clean);
@@ -1677,7 +1854,7 @@ const Game = {
             "matched_segments": ["用户猜测中与要点吻合的原文片段1"],
             "wrong_segments": ["用户猜测中与真相明显矛盾的原文片段1"],
             "achieved_points": ["对应真相要点表中的要点原文1"],
-            "comment": "一句话简短评语"
+            "comment": "温和而鼓励式的一句话评价，仅评价用户本轮的推理表现（如：思路清晰、有所进展、需要调整方向等），不涉及谜题内容"
         }
         注意：matched_segments 和 wrong_segments 必须是用户猜测文本的子串。achieved_points 必须是 key_points 中被用户明显猜中的内容。`;
 
@@ -1690,34 +1867,59 @@ const Game = {
                     const clean = txt.replace(/```json/g,'').replace(/```/g,'').replace(/<think>[\s\S]*?<\/think>/g,'');
                     const res = JSON.parse(clean);
                     
+                    // 修改：仅统计本次猜中的要点数量，不累加
+                    const thisRoundMatched = (res.achieved_points || []).length;
+                    
+                    // 累加到总进度（用于通关判定）
                     if(res.achieved_points) {
-                        res.achieved_points.forEach(p => { if(!this.state.foundPoints.includes(p)) this.state.foundPoints.push(p); });
+                        res.achieved_points.forEach(p => { 
+                            if(!this.state.foundPoints.includes(p)) 
+                                this.state.foundPoints.push(p); 
+                        });
                     }
 
                     const total = this.state.puzzle.key_points.length;
-                    const found = this.state.foundPoints.length;
+                    const cumulativeFound = this.state.foundPoints.length; // 累计进度
                     const wrong = (res.wrong_segments||[]).length;
-                    let score = Math.round((found/total)*100) - (wrong*10);
+                    
+                    // 基础分 = 本次匹配要点数 / 总要点数 * 100
+                    let score = Math.round((thisRoundMatched / total) * 100) - (wrong * 10);
                     score = Math.max(0, Math.min(100, score));
 
                     let htmlText = g.replace(/&/g, "&amp;").replace(/</g, "&lt;");
                     (res.matched_segments||[]).forEach(s => htmlText = htmlText.split(s).join(`<span class="hl-ok">${s}</span>`));
                     (res.wrong_segments||[]).forEach(s => htmlText = htmlText.split(s).join(`<span class="hl-no">${s}</span>`));
                     
+                    // 构建卡片内容
+                    const deduction = wrong > 0 ? ` <span style="font-size:0.7rem; color:var(--c-no)">(-${wrong * 10})</span>` : '';
+                    const errorInfo = wrong > 0 ? `<span style="font-size:0.8rem;color:var(--c-no);margin-left:10px;">错误 ${wrong}</span>` : '';
+                    
                     const html = `
                     <div class="report">
-                        <div class="report-head"><span class="report-score">${score}分</span><span style="font-size:0.8rem;color:#94a3b8">进度 ${found}/${total}</span></div>
+                        <div class="report-head">
+                            <span class="report-score">${score}分${deduction}</span>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <span style="font-size:0.8rem;color:#94a3b8">已匹配 ${cumulativeFound}/${total}</span>
+                                ${errorInfo}
+                            </div>
+                        </div>
                         <div class="report-body">${htmlText}</div>
-                        <div class="report-comment"><span class="iconify" data-icon="lucide:message-square"></span> ${res.comment || "..."}</div>
+                        <div class="report-comment"><span class="iconify" data-icon="lucide:message-square"></span> ${res.comment || "继续努力！"}</div>
                     </div>`;
 
                     UI.replacePlaceholder(id, html, 'ai', true);
                     this.state.history.push({role:"assistant", content:html});
                     this.saveHistory('active');
 
-                    if(score >= 100 && found >= total) setTimeout(()=>this.finish(true), 1500);
+                    // 通关条件：累计进度达到 100% 且本次无错误
+                    if(cumulativeFound >= total && score >= 100) {
+                        setTimeout(()=>this.finish(true), 1500);
+                    }
 
-                } catch(e) { UI.replacePlaceholder(id, "评分失败", 'ai'); }
+                } catch(e) { 
+                    console.error(e);
+                    UI.replacePlaceholder(id, "评分失败", 'ai'); 
+                }
             }
         }, { thinking: true });
     },
@@ -1820,11 +2022,16 @@ ${JSON.stringify(pastHints)}
         document.getElementById('gameContainer').classList.add('state-over');
 
         let rank = 'F';
+        let rankColor = 'var(--c-no)'; // 默认失败红色
+        
         if(success) {
             const base = 100;
             const ded = this.state.turnsUsed * 2;
             const s = Math.max(0, base - ded);
-            if(s>=90) rank='S'; else if(s>=80) rank='A'; else if(s>=60) rank='B'; else rank='C';
+            if(s>=90) { rank='S'; rankColor='#fbbf24'; } // 金色
+            else if(s>=80) { rank='A'; rankColor='#a78bfa'; } // 紫色
+            else if(s>=60) { rank='B'; rankColor='var(--primary)'; } // 蓝色
+            else { rank='C'; rankColor='var(--c-yes)'; } // 绿色
         }
 
         if(!isReplay || !document.querySelector('.inline-result')) {
@@ -1832,7 +2039,7 @@ ${JSON.stringify(pastHints)}
             card.className = 'inline-result';
             card.innerHTML = `
                 <h2>${success?"🎉 任务完成":"💀 任务失败"}</h2>
-                <div class="score">${rank}</div>
+                <div class="score" style="color:${rankColor}">${rank}</div>
                 <div style="font-size:0.9rem; color:#94a3b8">轮次: ${this.state.turnsUsed} | 提示: ${this.state.hintsUsed}</div>
                 <div class="truth-box"><strong>真相：</strong><br>${this.state.puzzle.answer}</div>
                 <button class="btn" onclick="Game.backToHome()"><span class="iconify" data-icon="lucide:home"></span> 返回主页</button>
