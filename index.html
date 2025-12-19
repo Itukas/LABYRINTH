@@ -714,7 +714,7 @@
                 
                 <div class="input-row">
                     <div class="input-stack" id="inputStack">
-                        <textarea id="inputAsk" class="game-input input-ask" placeholder="输入是/非问句，或陈述某个猜想..." rows="1"></textarea>
+                        <textarea id="inputAsk" class="game-input input-ask" placeholder="输入可用是/非回答的问句，或陈述某个猜想..." rows="1"></textarea>
                         <textarea id="inputGuess" class="game-input input-guess" placeholder="输入完整的推理真相..." rows="3"></textarea>
                     </div>
                     <button class="send-btn" onclick="Game.send()">
@@ -1522,7 +1522,7 @@ const Game = {
             kpCount = "4-6";
         } else {
             diffPrompt = "谜题应当极具挑战性，核心诡计非常隐晦，涉及复杂的因果链、心理盲区或冷门知识，需要极强的逻辑跳跃能力。";
-            kpCount = "5-8";
+            kpCount = "6-10";
         }
 
         const prompt = `你是一位侧向思维谜题大师。任务：根据标签[${this.state.tags}]创作一个逻辑严密的悬疑海龟汤。
@@ -1731,20 +1731,55 @@ const Game = {
             .filter(m => m.role === 'assistant' && (m.content.includes('💡') || m.content.includes('提示')))
             .map(m => m.content);
 
-        const sys = `谜面：${this.state.puzzle.puzzle}。真相是：${this.state.puzzle.answer}。基于用户回答的历史：${JSON.stringify(this.state.history.slice(-4))}。已提供的提示：${JSON.stringify(pastHints)}。给出一句反问式提示，以引导用户向未解开的部分靠近。不要直接透露谜底。不要输出提示正文以外的任何内容。提示与之前的提示不应重复，也不要提示用户已经知道的内容`;
-        
-        const id = UI.addPlaceholder("正在生成提示...");
+        // 提取猜谜尝试和评分
+        const guessAttempts = this.state.history
+            .filter(m => m.content.includes('[猜谜]'))
+            .map((m, idx) => {
+                const userGuess = m.content.replace('[猜谜] ', '');
+                const aiResponse = this.state.history[this.state.history.indexOf(m) + 1];
+                return `尝试${idx+1}: ${userGuess}\n评分: ${aiResponse?.content || '无'}`;
+            })
+            .join('\n\n');
 
-        Api.stream(Api.cfg.fastModel, [{role:"system", content:sys}], {
-            onThink: () => {},
-            onFinish: (txt) => {
-                const clean = txt.replace(/<think>[\s\S]*?<\/think>/g,'').trim();
-                const hintMsg = `💡 提示：${clean}`;
-                UI.replacePlaceholder(id, hintMsg, 'ai');
-                this.state.history.push({role:"assistant", content:hintMsg});
-                this.saveHistory('active');
-            }
-        }, { thinking: true });
+        // 构建更完整的上下文（限制在合理长度内）
+        const recentHistory = this.state.history.slice(-30); // 最近 30 条
+        const foundPointsInfo = `已猜中要点: ${this.state.foundPoints.join(', ') || '无'}`;
+
+        const sys = `谜面：${this.state.puzzle.puzzle}
+真相：${this.state.puzzle.answer}
+全部真相要点：${JSON.stringify(this.state.puzzle.key_points)}
+
+${foundPointsInfo}
+
+最近对话历史（最后30条）：
+${JSON.stringify(recentHistory, null, 2)}
+
+用户猜谜尝试记录：
+${guessAttempts || '尚未猜谜'}
+
+已提供的提示：
+${JSON.stringify(pastHints)}
+
+任务：基于用户的**整体进度**和**已猜中的要点**，给出一句反问式提示，引导用户向**未解开的关键要点**靠近。
+要求：
+1. 不要重复之前的提示
+2. 不要提示用户已经知道或猜中的内容
+3. 优先引导用户关注被忽略的关键要点
+4. 不要直接透露谜底
+5. 只输出提示正文，不要其他内容`;
+    
+    const id = UI.addPlaceholder("正在生成提示...");
+
+    Api.stream(Api.cfg.fastModel, [{role:"system", content:sys}], {
+        onThink: () => {},
+        onFinish: (txt) => {
+            const clean = txt.replace(/<think>[\s\S]*?<\/think>/g,'').trim();
+            const hintMsg = `💡 提示：${clean}`;
+            UI.replacePlaceholder(id, hintMsg, 'ai');
+            this.state.history.push({role:"assistant", content:hintMsg});
+            this.saveHistory('active');
+        }
+    }, { thinking: true });
     },
 
     updateStats() {
@@ -1947,6 +1982,4 @@ const Confetti = {
 };
 </script>
 </body>
-
 </html>
-
