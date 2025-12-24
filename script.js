@@ -335,7 +335,7 @@ const Api = {
         } catch(e) { el.innerHTML = `<span style="color:var(--c-no)">❌ 网络错误</span>`; }
     },
 
-    // 新增：测试思考模式
+    // 测试思考模式
     async testThinking(type) {
         const el = document.getElementById(type==='story'?'testStory':'testFast');
         const model = document.getElementById(type==='story'?'modelStory':'modelFast').value;
@@ -445,10 +445,14 @@ const Api = {
                 body: JSON.stringify(payload)
             });
 
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+
             const reader = res.body.getReader();
             const decoder = new TextDecoder();
             let fullText = "";
-            let thinkingText = "";  // 新增：单独记录思考内容
+            let thinkingText = "";  // 单独记录思考内容
             let started = false;
 
             while(true) {
@@ -555,8 +559,22 @@ const UI = {
             else if(content.includes('无关')) el.classList.add('ai-irr');
         }
 
-        if(isHtml) el.innerHTML = content;
-        else el.innerText = content;
+        if(role === 'system-error') {
+            el.innerHTML = `
+                <div class="error-card">
+                    <div class="error-info">
+                        <span class="iconify" data-icon="lucide:alert-circle"></span>
+                        <span>${content}</span>
+                    </div>
+                    <button class="retry-btn" onclick="Game.retry()">
+                        <span class="iconify" data-icon="lucide:refresh-cw"></span> 重试
+                    </button>
+                </div>
+            `;
+        } else {
+            if(isHtml) el.innerHTML = content;
+            else el.innerText = content;
+        }
         this.scroll();
     },
     
@@ -724,7 +742,9 @@ const Game = {
         titleFound: false,
         settlePromptShown: false,  // 是否已显示过结算提示
         canSettle: false,          // 是否可以结算
-        highestScore: 0            // 新增：历史最高单次得分
+        highestScore: 0,           // 历史最高单次得分
+        lastInput: "",             // 记录最后一次输入用于重试
+        lastMode: ""               // 记录最后一次模式用于重试
     },
 
     setDiff(d, el) {
@@ -925,7 +945,7 @@ const Game = {
         titleRow.classList.add('has-emoji');
     },
 
-        // 新增：调试打印方法
+        // 调试打印方法
     debugPrint() {
         if (!this.state.puzzle) {
             console.log('%c[DEBUG] 谜题尚未生成', 'color: orange');
@@ -961,7 +981,7 @@ const Game = {
         console.log('  Game.cheat.addHints(n)   - 增加 n 次提示');
     },
 
-        // 新增：作弊工具集
+        // 作弊工具集
     cheat: {
         showAnswer() {
             if (!Game.state.puzzle) return console.log('谜题未生成');
@@ -1079,7 +1099,7 @@ const Game = {
                 card.scrollIntoView({ behavior: 'smooth', block: 'end' });
             }, 100);
             
-            // ✨ 新增：打印已完成游戏的调试信息
+            // ✨ 打印已完成游戏的调试信息
             console.group('%c📚 历史记录 (已完成)', 'color: #94a3b8; font-size: 14px;');
             console.log('标题:', item.title);
             console.log('评级:', item.rank);
@@ -1152,7 +1172,7 @@ const Game = {
         this.updateStats();
         this.setMode('ask');
         
-        // ✨ 新增：打印调试信息
+        // ✨ 打印调试信息
         console.log('%c📂 从历史记录恢复', 'color: #38bdf8; font-size: 14px;');
         this.debugPrint();
     },
@@ -1243,7 +1263,7 @@ const Game = {
                         this.updateStats();
                         UI.addMsg('sys', '谜题已呈现。请提问/猜谜');
 
-                        // ✨ 新增：打印调试信息
+                        // ✨ 打印调试信息
                         this.debugPrint();
 
                     } catch(e) {
@@ -1335,6 +1355,10 @@ const Game = {
 
         input.value = '';
         
+        // 记录最后一次输入和模式，用于重试
+        this.state.lastInput = val;
+        this.state.lastMode = this.mode;
+
         UI.addMsg(this.mode==='ask'?'user-ask':'user-guess', val);
         this.state.history.push({role:"user", content: this.mode==='ask' ? `[提问] ${val}` : `[猜谜] ${val}`});
         
@@ -1349,9 +1373,25 @@ const Game = {
         }
     },
 
-    handleAsk(q) {
+    retry() {
+        if(!this.state.lastInput) return;
+        
+        // 移除最后一个错误消息（如果有）
+        const lastMsg = document.querySelector('#chatList .msg:last-child');
+        if(lastMsg && lastMsg.classList.contains('msg-system-error')) {
+            lastMsg.remove();
+        }
+
+        const val = this.state.lastInput;
+        const id = UI.addPlaceholder(this.state.lastMode === 'ask' ? "分析中..." : "裁判正在评估...");
+        
+        if(this.state.lastMode === 'ask') this.handleAsk(val, id);
+        else this.handleGuess(val, id);
+    },
+
+    handleAsk(q, existingId = null) {
         const sys = `谜面：${this.state.puzzle.puzzle}。真相是：${this.state.puzzle.answer}。用户问：${q}。请回复JSON：{"res":"是/不是/无关/是也不是"}。提示：当用户的问题或判断在真相逻辑中明确成立时，回答“是”；当用户的问题或判断在真相逻辑中明确不成立时，回答“不是”；当问题与谜题无关或真相没有提供相关解释时，回答“无关”；当问题或答案本身存在二义性或悖论时，回答“是也不是”。不要包含任何多余解释。`;
-        const id = UI.addPlaceholder("分析中...");
+        const id = existingId || UI.addPlaceholder("分析中...");
         
         Api.stream(Api.cfg.fastModel, [{role:"system", content:sys}], {
             onFinish: (txt) => {
@@ -1360,12 +1400,18 @@ const Game = {
                     UI.replacePlaceholder(id, j.res, 'ai');
                     this.state.history.push({role:"assistant", content:j.res});
                     this.saveHistory('active');
-                } catch(e) { UI.replacePlaceholder(id, "系统错误", 'ai'); }
+                } catch(e) { 
+                    UI.replacePlaceholder(id, `解析错误: ${e.message}`, 'system-error', true); 
+                }
+            },
+            onError: (err) => {
+                UI.replacePlaceholder(id, `系统错误 (${err.message})`, 'system-error', true);
             }
         }, { thinking: true }); 
     },
 
-    handleGuess(g) {
+    // 修改：handleGuess 方法
+    handleGuess(g, existingId = null) {
         const kps = JSON.stringify(this.state.puzzle.key_points);
         const sys = `你是一个海龟汤裁判。
         谜面：${this.state.puzzle.puzzle}
@@ -1382,7 +1428,7 @@ const Game = {
         }
         注意：matched_segments 和 wrong_segments 必须是用户猜测文本的子串。achieved_points 必须是 key_points 中被用户明显猜中的内容。`;
 
-        const id = UI.addPlaceholder("裁判正在评估...");
+        const id = existingId || UI.addPlaceholder("裁判正在评估...");
         
         Api.stream(Api.cfg.fastModel, [{role:"system", content:sys}], {
             onThink: () => {}, 
@@ -1464,9 +1510,11 @@ const Game = {
                     }
 
                 } catch(e) { 
-                    console.error(e);
-                    UI.replacePlaceholder(id, "评分失败", 'ai'); 
+                    UI.replacePlaceholder(id, `解析错误: ${e.message}`, 'system-error', true); 
                 }
+            },
+            onError: (err) => {
+                UI.replacePlaceholder(id, `系统错误 (${err.message})`, 'system-error', true);
             }
         }, { thinking: true });
     },
@@ -1615,7 +1663,7 @@ const Game = {
         this.finish(true, false, true);
     },
 
-    // 新增：显示结算提示卡片
+    // 显示结算提示卡片
     showSettlePrompt() {
         if (this.state.settlePromptShown) return;
         this.state.settlePromptShown = true;
@@ -1643,7 +1691,7 @@ const Game = {
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
 
-    // 新增：显示/隐藏结算按钮
+    // 显示/隐藏结算按钮
     updateSettleButton() {
         const btn = document.getElementById('settleBtn');
         if (btn) {
