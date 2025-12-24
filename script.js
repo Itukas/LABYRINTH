@@ -1376,11 +1376,12 @@ const Game = {
     retry() {
         if(!this.state.lastInput) return;
         
-        // 移除最后一个错误消息（如果有）
+        // 仅在最后一条消息为错误消息时才允许重试，并移除该错误消息
         const lastMsg = document.querySelector('#chatList .msg:last-child');
-        if(lastMsg && lastMsg.classList.contains('msg-system-error')) {
-            lastMsg.remove();
+        if(!lastMsg || !lastMsg.classList.contains('msg-system-error')) {
+            return;
         }
+        lastMsg.remove();
 
         const val = this.state.lastInput;
         const id = UI.addPlaceholder(this.state.lastMode === 'ask' ? "分析中..." : "裁判正在评估...");
