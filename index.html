@@ -124,9 +124,14 @@
                             <div class="diff-btn" onclick="Game.setDiff('normal', this)">常规</div>
                             <div class="diff-btn" onclick="Game.setDiff('hard', this)">困难</div>
                         </div>
-                        <button class="btn" onclick="Api.open()" title="设置">
-                            <span class="iconify" data-icon="lucide:settings-2"></span>
-                        </button>
+                        <div style="display:flex; gap:8px;">
+                            <a href="https://github.com/GVD20/LABYRINTH" target="_blank" rel="noopener noreferrer" class="btn" title="项目仓库" style="text-decoration:none;">
+                                <span class="iconify" data-icon="lucide:github"></span>
+                            </a>
+                            <button class="btn" onclick="Api.open()" title="API设置">
+                                <span class="iconify" data-icon="lucide:settings-2"></span>
+                            </button>
+                        </div>
                     </div>
                     <div id="diffDesc" style="font-size:0.85rem; color:#94a3b8; margin-top:10px; padding:0 4px; font-family:var(--font-ui); line-height:1.5;">逻辑直观，线索明显。<br>无限次提问与提示机会。</div>
                 </div>
@@ -240,6 +245,7 @@
         </div>
     </div>
 
+    <script src="tags.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
