@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Labyrinth | 逻辑迷宫 | AI海龟汤</title>
-
+    
     <link rel="preconnect" href="https://fonts.googleapis.cn">
     <link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin>
     <link href="https://fonts.googleapis.cn/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@300;500;700;900&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-
+    
     <script src="https://cdn.jsdelivr.net/npm/@iconify/iconify@3.1.1/dist/iconify.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -27,7 +27,7 @@
                     <span class="iconify" data-icon="lucide:x"></span>
                 </button>
             </div>
-
+            
             <div id="modelPicker" class="model-picker-overlay">
                 <div style="display:flex; gap:10px; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px;">
                     <button class="btn" onclick="Api.closePicker()" style="padding:6px;"><span class="iconify" data-icon="lucide:arrow-left"></span></button>
@@ -54,20 +54,10 @@
                     <div id="scanStatus" style="font-size:0.75rem; color:var(--c-yes); transition:opacity 0.5s; opacity:0;"></div>
                 </div>
             </div>
-
+            
             <div class="api-group">
                 <label class="api-label">API Key</label>
                 <input type="password" id="apiKey" class="api-input" placeholder="sk-...">
-            </div>
-
-            <div class="api-group">
-                <label class="api-label">数据同步服务器 (可选)</label>
-                <div class="input-with-btn">
-                    <input type="text" id="apiServerUrl" class="api-input" placeholder="e.g. http://192.168.1.10:5000">
-                </div>
-                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
-                    填写后端地址以启用云端同步，留空则仅保存在本地。
-                </div>
             </div>
 
             <div class="model-row">
@@ -111,7 +101,7 @@
                     </div>
                 </div>
             </div>
-
+            
             <button class="btn primary" onclick="Api.save()" style="width:100%; padding:12px; margin-top:5px;">
                 <span class="iconify" data-icon="lucide:save"></span> 保存配置
             </button>
@@ -126,7 +116,7 @@
                     <h1 class="game-title">LABYRINTH</h1>
                     <div style="font-size:0.9rem; color:var(--text-muted); margin-top:5px; font-family:var(--font-serif); font-style:italic;">探索逻辑的迷宫，还原故事的真相。</div>
                 </div>
-
+                
                 <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:16px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div class="difficulty-selector">
@@ -149,7 +139,7 @@
                 <div id="tagTip" style="color:var(--primary); font-size:0.9rem; min-height:1.2em; display:flex; align-items:center; gap:6px;">
                     <span class="iconify" data-icon="lucide:mouse-pointer-2"></span> 请选择 1-4 个关键词
                 </div>
-
+                
                 <div style="display:flex; gap:12px;">
                     <button class="btn" onclick="Bubble.refresh()">
                         <span class="iconify" data-icon="lucide:refresh-cw"></span> 换一批
@@ -175,7 +165,7 @@
 
     <div id="page-game" class="page">
         <div class="game-container state-init" id="gameContainer">
-
+            
             <div class="game-header glass-panel">
                 <div class="puzzle-title-row">
                     <div>
@@ -189,7 +179,7 @@
                         <div id="hintCounter" class="stat-badge"><span class="iconify" data-icon="lucide:lightbulb"></span> ∞ 提示</div>
                     </div>
                 </div>
-
+                
                 <div id="thinkingBar" class="thinking-bar">
                     <div class="thinking-dot"></div>
                     <div class="thinking-label-container">
@@ -228,7 +218,7 @@
                             </button>
                         </div>
                     </div>
-
+                    
                     <div class="input-row">
                         <div class="input-stack" id="inputStack">
                             <textarea id="inputAsk" class="game-input input-ask" placeholder="输入可用是/非回答的问句，或陈述某个猜想..." rows="1"></textarea>
